@@ -1,35 +1,15 @@
 import torch
 import numpy as np
+from dotmap import DotMap
 
-class RolloutPolicyGradient(object):
-    def __init__(self, env, model, config):
+
+class BatchPolicyGradient(object):
+    def __init__(self, env, model, config, logger):
         self.env = env
         self.model = model
         self.config = config
-        self.logger = {}
+        self.logger = logger
 
-    def log_summary(self):
-        timestep = self.logger['timestep']
-        iteration = self.logger['iteration']
-        actor_loss = self.logger['actor_loss'].item()
-    
-        batch_reward = self.logger['batch_rewards']
-        batch_sum = [ep_rewards.sum().item() for ep_rewards in batch_reward]
-        avg_ep_rew = sum(batch_sum)/len(batch_sum)
-    
-    
-        avg_ep_rew = str(round(avg_ep_rew, 2))
-        actor_loss = str(round(actor_loss, 5))
-    
-        print(flush=True)
-        print(f"-------------------- Iteration #{iteration} --------------------", flush=True)
-        # print(f"Average Episodic Length: {avg_ep_lens}", flush=True)
-        print(f"Average Episodic Return: {avg_ep_rew}", flush=True)
-        print(f"Actor Loss: {actor_loss}", flush=True)
-        print(f"Timesteps So Far: {timestep}", flush=True)
-        print(f"------------------------------------------------------", flush=True)
-        print(flush=True)
-    
     def episode_rollout(self):
         # rollout single episode
         max_episode_length = self.config.max_episode_length
@@ -82,13 +62,13 @@ class RolloutPolicyGradient(object):
         timestep = 0
         while (timestep < total_timesteps):
             batch_obs, batch_acts, batch_log_probs, batch_rewards, batch_lens = self.batch_rollout()
-            self.logger['batch_rewards'] = batch_rewards
+
+            batch_sum = [ep_rewards.sum().item() for ep_rewards in batch_rewards]
+            avg_ep_rew = sum(batch_sum)/len(batch_sum)
+            avg_ep_lens = np.mean(batch_lens)
 
             iteration += 1
-            self.logger['iteration'] = iteration
-
             timestep += np.sum(batch_lens)
-            self.logger['timestep'] = timestep
 
             # calculate log_probs, and advantages
             actor_loss, critic_loss = self.evaluate(batch_obs, batch_acts, batch_rewards, batch_log_probs)
@@ -99,9 +79,16 @@ class RolloutPolicyGradient(object):
                 critic_loss.backward()
             self.model.update()
 
-            self.logger['actor_loss'] = actor_loss.detach()
+            # update logger
+            self.logger.update_data({
+                'iteration': iteration,
+                'timestep': timestep,
+                'avg_ep_rew': avg_ep_rew,
+                'avg_ep_lens': avg_ep_lens,
+                'actor_loss': actor_loss.detach().item(),
+            })
 
-            self.log_summary()
-            
+            self.logger.print_summary()
+
     def evaluate(self):
         raise NotImplementedError('`evaluate` function not implemented.')

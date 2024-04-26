@@ -1,12 +1,12 @@
 import torch
 from torch import nn
 import numpy as np
-from algorithms.pg import RolloutPolicyGradient
+from algorithms.pg import BatchPolicyGradient
 
 
-class RTG(RolloutPolicyGradient):
-    def __init__(self, env, model, config):
-        RolloutPolicyGradient.__init__(self, env, model, config)
+class RTG(BatchPolicyGradient):
+    def __init__(self, env, model, config, logger):
+        BatchPolicyGradient.__init__(self, env, model, config, logger)
 
     def compute_rtgs(self, batch_rewards):
         gamma = self.config.gamma
@@ -39,9 +39,9 @@ class RTG(RolloutPolicyGradient):
         return actor_loss, None
 
 
-class BaselineRTG(RolloutPolicyGradient):
-    def __init__(self, env, model, config):
-            RolloutPolicyGradient.__init__(self, env, model, config)
+class BaselineRTG(BatchPolicyGradient):
+    def __init__(self, env, model, config, logger):
+            BatchPolicyGradient.__init__(self, env, model, config, logger)
 
     def compute_rtgs(self, batch_rewards):
         gamma = self.config.gamma
