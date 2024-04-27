@@ -75,3 +75,82 @@ class BaselineRTG(BatchPolicyGradient):
 
         critic_loss = nn.MSELoss()(batch_rtgs.float(), values)
         return actor_loss, critic_loss
+
+
+class TDResidual(BatchPolicyGradient):
+    def __init__(self, env, model, config, logger):
+        BatchPolicyGradient.__init__(self, env, model, config, logger)
+
+    def compute_residuals(self, batch_obs, batch_rewards):
+        gamma = self.config.gamma
+        batch_res = []
+
+        for ep_num in range(len(batch_rewards)):
+            ep_obs = batch_obs[ep_num]
+            ep_rew = batch_rewards[ep_num]
+            ep_values = self.model.get_value(ep_obs, False).squeeze()
+            ep_values_prime = torch.cat((ep_values[1:], torch.tensor([0.0])))
+            ep_res = ep_rew + gamma * ep_values_prime - ep_values
+            batch_res.append(ep_res)
+
+        return batch_res
+
+    def evaluate(self, batch_obs, batch_acts, batch_rewards, batch_log_probs):
+        # calculate advantages
+        batch_res = self.compute_residuals(batch_obs, batch_rewards)
+        batch_obs, batch_acts = torch.cat(batch_obs), torch.cat(batch_acts)
+
+        residuals = torch.cat(batch_res)
+        values = self.model.get_value(batch_obs).squeeze()
+        advantages = residuals
+        normalized_adv = (advantages - advantages.mean()) / (advantages.std() + 1e-10)
+
+        _, dist = self.model.get_action(batch_obs)
+        log_probs = dist.log_prob(batch_acts)
+        actor_loss = (-normalized_adv * log_probs).mean()
+        critic_loss = (-normalized_adv * values).mean()
+        return actor_loss, critic_loss
+
+
+class GAE(BatchPolicyGradient):
+    def __init__(self, env, model, config, logger):
+        BatchPolicyGradient.__init__(self, env, model, config, logger)
+
+    def compute_lamda_returns(self, batch_obs, batch_rewards):
+        gamma = self.config.gamma
+        lam = self.config.lam
+
+        batch_lam = []
+
+        for ep_num in range(len(batch_rewards)):
+            ep_obs = batch_obs[ep_num]
+            ep_rew = batch_rewards[ep_num]
+            ep_values = self.model.get_value(ep_obs, False).squeeze()
+            ep_values_prime = torch.cat((ep_values[1:], torch.tensor([0.0])))
+            ep_res = ep_rew + gamma * ep_values_prime - ep_values
+
+            ep_lam = []
+            residual_sum = 0
+            for res in reversed(ep_res):
+                residual_sum = res + lam * gamma * residual_sum
+                ep_lam.insert(0, residual_sum)
+            ep_lam = torch.tensor(np.array(ep_lam))
+            batch_lam.append(ep_lam)
+
+        return batch_lam
+
+    def evaluate(self, batch_obs, batch_acts, batch_rewards, batch_log_probs):
+        # calculate advantages
+        batch_lam = self.compute_lamda_returns(batch_obs, batch_rewards)
+        batch_obs, batch_acts = torch.cat(batch_obs), torch.cat(batch_acts)
+
+        batch_lam = torch.cat(batch_lam)
+        values = self.model.get_value(batch_obs).squeeze()
+        advantages = batch_lam
+        normalized_adv = (advantages - advantages.mean()) / (advantages.std() + 1e-10)
+
+        _, dist = self.model.get_action(batch_obs)
+        log_probs = dist.log_prob(batch_acts)
+        actor_loss = (-normalized_adv * log_probs).mean()
+        critic_loss = (-normalized_adv * values).mean()
+        return actor_loss, critic_loss

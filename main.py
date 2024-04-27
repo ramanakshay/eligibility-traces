@@ -29,7 +29,7 @@ model_config = DotMap({
     'obs_dim': env.observation_space.shape[0],
     'act_dim': env.action_space.shape[0],
     'hidden_dim': 64,
-    'lr': 3e-4
+    'lr': 1e-3
 })
 model = ContinuousActor(model_config)
 logger.update_info(str(model))
@@ -43,12 +43,13 @@ alg_config = DotMap({
     'timesteps_per_batch': 2048,
     'gamma': 0.99
 })
-alg = RTG(env, model, alg_config, logger)
+alg = TDResidual(env, model, alg_config, logger)
 total_timesteps = 2005000
 alg.learn(total_timesteps)
 logger.update_info("Algorithm")
 logger.update_info("RTG")
 logger.update_info(str(alg_config))
+logger.update_info(f"Total Timesteps={total_timesteps}")
 
 log_name = env_name + "_RTG"
 logger.save(log_name)
