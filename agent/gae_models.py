@@ -1,80 +1,10 @@
 from agent.networks import MLP
-from agent.optimizers import Adam, SGD
+from agent.optimizers import ETSGD, ETAdam, RETAdam
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.distributions import MultivariateNormal, Categorical
-
-
-class ModelType(object):
-    def __init__(self):
-        # networks, optimizers, encoders, decoders
-        pass
-    
-    def __repr__(self):
-        return "Model Type Class"
-
-
-class ContinuousActor(object):
-    def __init__(self, config):
-        self.config = config
-        self.obs_dim = self.config.obs_dim
-        self.act_dim = self.config.act_dim
-
-        self.actor = MLP(self.obs_dim, self.act_dim, self.config.hidden_dim)
-        self.optim = Adam(self.actor.parameters(), lr = self.config.lr)
-
-        self.cov_var = torch.full(size=(self.act_dim,), fill_value=0.5)
-        self.cov_mat = torch.diag(self.cov_var)
-
-    def __repr__(self):
-        return f"Continuous Actor Model: \n\
-    Network = {type(self.actor).__name__} \n\
-    Optimizer = {type(self.optim).__name__}"
-
-    def reset(self):
-        self.optim.zero_grad()
-
-    def update(self):
-        self.optim.step()
-
-    def get_action(self, obs, grad=True):
-        with torch.set_grad_enabled(grad):
-            mean = self.actor(obs)
-            dist = MultivariateNormal(mean, self.cov_mat)
-            action = dist.sample()
-        return action, dist
-
-
-class DiscreteActor(object):
-    def __init__(self, config):
-        self.config = config
-        self.obs_dim = self.config.obs_dim
-        self.act_dim = self.config.act_dim
-
-        self.actor = MLP(self.obs_dim, self.act_dim, self.config.hidden_dim)
-        self.optim = Adam(self.actor.parameters(), lr = self.config.lr)
-
-
-    def __repr__(self):
-        return f"Discrete Actor Model: \n\
-    Network = {type(self.actor).__name__} \n\
-    Optimizer = {type(self.optim).__name__}"
-
-    def reset(self):
-        self.optim.zero_grad()
-
-    def update(self):
-        self.optim.step()
-
-    def get_action(self, obs, grad=True):
-        with torch.set_grad_enabled(grad):
-            output = self.actor(obs)
-            probs = F.softmax(output, dim=1)
-            dist = Categorical(probs)
-            action = dist.sample()
-            return action, dist
 
 
 class ContinuousActorCritic(object):
@@ -85,9 +15,14 @@ class ContinuousActorCritic(object):
 
         self.actor = MLP(self.obs_dim, self.act_dim, self.config.hidden_dim)
         self.critic = MLP(self.obs_dim, 1, self.config.hidden_dim)
-
-        self.actor_optim = Adam(self.actor.parameters(), lr = self.config.lr)
-        self.critic_optim = Adam(self.critic.parameters(), lr = self.config.lr)
+        
+        self.lr = self.config.lr
+        self.gam = self.config.gam
+        self.lam = self.config.lam
+        
+        # NOTE: ETSGD Maximizes
+        self.actor_optim = ETSGD(self.actor.parameters(), lr = self.lr, gam=self.gam, lam = self.lam)
+        self.critic_optim = ETSGD(self.critic.parameters(), lr = self.lr, gam=self.gam, lam = self.lam)
 
         self.cov_var = torch.full(size=(self.act_dim,), fill_value=0.5)
         self.cov_mat = torch.diag(self.cov_var)
@@ -98,15 +33,24 @@ class ContinuousActorCritic(object):
             Actor Optimizer = {type(self.actor_optim).__name__} \n\
             Critic Network = {type(self.critic).__name__} \n\
             Critic Optimizer = {type(self.critic_optim).__name__}"
+    
+    def trace(self):
+        self.actor_optim.set_trace()
+        self.critic_optim.set_trace()
+        
+    def broadcast(self, residual):
+        self.actor_optim.broadcast(residual)
+        self.critic_optim.broadcast(residual)
 
     def reset(self):
-        self.actor_optim.zero_grad()
-        self.critic_optim.zero_grad()
+        # reset trace
+        self.actor_optim.reset_trace()
+        self.critic_optim.reset_trace()
 
     def update(self):
         self.actor_optim.step()
         self.critic_optim.step()
-
+    
     def get_action(self, obs, grad=True):
         with torch.set_grad_enabled(grad):
             mean = self.actor(obs)
@@ -129,8 +73,12 @@ class DiscreteActorCritic(object):
         self.actor = MLP(self.obs_dim, self.act_dim, self.config.hidden_dim)
         self.critic = MLP(self.obs_dim, 1, self.config.hidden_dim)
 
-        self.actor_optim = Adam(self.actor.parameters(), lr = self.config.lr)
-        self.critic_optim = Adam(self.critic.parameters(), lr = self.config.lr)
+        self.lr = self.config.lr
+        self.gam = self.config.gam
+        self.lam = self.config.lam
+
+        self.actor_optim = ETAdam(self.actor.parameters(), lr = self.lr, gam=self.gam, lam = self.lam)
+        self.critic_optim = ETAdam(self.critic.parameters(), lr = self.lr, gam=self.gam, lam = self.lam)
 
 
     def __repr__(self):
@@ -139,10 +87,19 @@ class DiscreteActorCritic(object):
     Actor Optimizer = {type(self.actor_optim).__name__} \n\
     Critic Network = {type(self.critic).__name__} \n\
     Critic Optimizer = {type(self.critic_optim).__name__}"
-
+    
+    def trace(self):
+            self.actor_optim.set_trace()
+            self.critic_optim.set_trace()
+            
+    def broadcast(self, residual):
+        self.actor_optim.broadcast(residual)
+        self.critic_optim.broadcast(residual)
+    
     def reset(self):
-        self.actor_optim.zero_grad()
-        self.critic_optim.zero_grad()
+        # reset trace
+        self.actor_optim.reset_trace()
+        self.critic_optim.reset_trace()
 
     def update(self):
         self.actor_optim.step()

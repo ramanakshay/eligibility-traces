@@ -1,5 +1,5 @@
-from agent.models import ContinuousActor
-from algorithms.vpg import RTG, BaselineRTG
+from agent.models import ContinuousActorCritic
+from algorithms.vpg import RTG, BaselineRTG, GAE
 import gymnasium as gym
 from dotmap import DotMap
 from logger import Logger
@@ -31,7 +31,7 @@ model_config = DotMap({
     'hidden_dim': 64,
     'lr': 1e-3
 })
-model = ContinuousActor(model_config)
+model = ContinuousActorCritic(model_config)
 logger.update_info(str(model))
 logger.update_info(str(model_config)+"\n")
 print(model)
@@ -41,9 +41,10 @@ print(model_config)
 alg_config = DotMap({
     'max_episode_length': 200,
     'timesteps_per_batch': 2048,
-    'gamma': 0.99
+    'gamma': 0.99,
+    'lam': 0.9
 })
-alg = TDResidual(env, model, alg_config, logger)
+alg = GAE(env, model, alg_config, logger)
 total_timesteps = 2005000
 alg.learn(total_timesteps)
 logger.update_info("Algorithm")
@@ -51,7 +52,7 @@ logger.update_info("RTG")
 logger.update_info(str(alg_config))
 logger.update_info(f"Total Timesteps={total_timesteps}")
 
-log_name = env_name + "_RTG"
+log_name = env_name + "_GAE"
 logger.save(log_name)
 
 

@@ -3,6 +3,7 @@ from algorithms.vpg import BaselineRTG, RTG, TDResidual, GAE
 import gymnasium as gym
 from logger import Logger
 from dotmap import DotMap
+import torch
 
 # logger
 logger = Logger()
@@ -28,7 +29,7 @@ model_config = DotMap({
     'obs_dim': env.observation_space.shape[0],
     'act_dim': env.action_space.n,
     'hidden_dim': 64,
-    'lr': 1e-3
+    'lr': 2e-2
 })
 model = DiscreteActorCritic(model_config)
 logger.update_info(str(model))

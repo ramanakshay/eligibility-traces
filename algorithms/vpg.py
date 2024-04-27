@@ -36,6 +36,7 @@ class RTG(BatchPolicyGradient):
         log_probs = dist.log_prob(batch_acts)
 
         actor_loss = (-advantages * log_probs).mean()
+        actor_loss.backward(retain_graph=True)
         return actor_loss, None
 
 
@@ -72,8 +73,10 @@ class BaselineRTG(BatchPolicyGradient):
         _, dist = self.model.get_action(batch_obs)
         log_probs = dist.log_prob(batch_acts)
         actor_loss = (-normalized_adv * log_probs).mean()
-
         critic_loss = nn.MSELoss()(batch_rtgs.float(), values)
+
+        actor_loss.backward(retain_graph=True)
+        critic_loss.backward()
         return actor_loss, critic_loss
 
 
@@ -109,6 +112,10 @@ class TDResidual(BatchPolicyGradient):
         log_probs = dist.log_prob(batch_acts)
         actor_loss = (-normalized_adv * log_probs).mean()
         critic_loss = (-normalized_adv * values).mean()
+
+        actor_loss.backward(retain_graph=True)
+        critic_loss.backward()
+
         return actor_loss, critic_loss
 
 
@@ -147,10 +154,16 @@ class GAE(BatchPolicyGradient):
         batch_lam = torch.cat(batch_lam)
         values = self.model.get_value(batch_obs).squeeze()
         advantages = batch_lam
+        # print(advantages.min(), advantages.max())
         normalized_adv = (advantages - advantages.mean()) / (advantages.std() + 1e-10)
+        # print(normalized_adv.min(), normalized_adv.max())
 
         _, dist = self.model.get_action(batch_obs)
         log_probs = dist.log_prob(batch_acts)
         actor_loss = (-normalized_adv * log_probs).mean()
         critic_loss = (-normalized_adv * values).mean()
+
+        actor_loss.backward(retain_graph=True)
+        critic_loss.backward()
+
         return actor_loss, critic_loss
