@@ -42,10 +42,10 @@ def choose_environment(env_name, logger):
             'obs_dim': env.observation_space.shape[0],
             'act_dim': env.action_space.n,
             'max_episode_length': 500,
-            'timesteps_per_update': 2500,
+            'timesteps_per_update': 5000,
             'total_timesteps': 150000,
             'gamma': 0.999,
-            'lr': 1e-3
+            'lr': 3e-3
         }
     elif env_name == 'particle-v0':
         info  = {
@@ -53,7 +53,7 @@ def choose_environment(env_name, logger):
             'act_dim': env.action_space.shape[0],
             'max_episode_length': 200,
             'timesteps_per_update': 1000,
-            'total_timesteps': 30000,
+            'total_timesteps': 50000,
             'gamma': 0.9,
             'lr': 1e-3
         }
@@ -69,7 +69,9 @@ def choose_model(model_name, info, logger):
         'lr': info['lr'],
         'hidden_dim': 64,
         'gam': info['gamma'],
-        'lam': 0.9
+        'lam': 0.9,
+        'clip': 0.2,
+        'replacing': False
     })
     if model_name == 'discrete-actor-critic':
         model = DiscreteActorCritic(model_config)
@@ -119,7 +121,7 @@ def train(args):
     alg.learn(total_timesteps)
 
     # save history
-    log_name = str(args.seed) + "_" + args.env + "_" + args.alg
+    log_name = str(args.seed) + "_" + args.env + "_Cont" + args.alg
     logger.save(log_name)
 
     return env, model

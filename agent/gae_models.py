@@ -1,5 +1,5 @@
 from agent.networks import MLP
-from agent.optimizers import ETSGD, ETAdam, RETAdam
+from agent.optimizers import ETSGD, ETAdam
 
 import torch
 import torch.nn as nn
@@ -19,10 +19,13 @@ class ContinuousActorCritic(object):
         self.lr = self.config.lr
         self.gam = self.config.gam
         self.lam = self.config.lam
+        self.clip = self.config.clip
+        self.replacing = self.config.replacing
         
-        # NOTE: ETSGD Maximizes
-        self.actor_optim = RETAdam(self.actor.parameters(), lr = self.lr, gam=self.gam, lam = self.lam)
-        self.critic_optim = RETAdam(self.critic.parameters(), lr = self.lr, gam=self.gam, lam = self.lam)
+        self.actor_optim = ETAdam(self.actor.parameters(), lr = self.lr, gam=self.gam, lam = self.lam,
+                                   clip=self.clip, replacing=self.replacing)
+        self.critic_optim = ETAdam(self.critic.parameters(), lr = self.lr, gam=self.gam, lam = self.lam,
+                                    clip=self.clip, replacing=self.replacing)
 
         self.cov_var = torch.full(size=(self.act_dim,), fill_value=0.5)
         self.cov_mat = torch.diag(self.cov_var)
@@ -76,9 +79,14 @@ class DiscreteActorCritic(object):
         self.lr = self.config.lr
         self.gam = self.config.gam
         self.lam = self.config.lam
+        self.clip = self.config.clip
+        self.replacing = self.config.replacing
 
-        self.actor_optim = ETAdam(self.actor.parameters(), lr = self.lr, gam=self.gam, lam = self.lam)
-        self.critic_optim = ETAdam(self.critic.parameters(), lr = self.lr, gam=self.gam, lam = self.lam)
+        # NOTE: ETSGD Maximizes
+        self.actor_optim = ETAdam(self.actor.parameters(), lr = self.lr, gam=self.gam, lam = self.lam,
+                    clip=self.clip, replacing=self.replacing)
+        self.critic_optim = ETAdam(self.critic.parameters(), lr = self.lr, gam=self.gam, lam = self.lam,
+                    clip=self.clip, replacing=self.replacing)
 
 
     def __repr__(self):

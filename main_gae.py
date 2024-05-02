@@ -1,5 +1,5 @@
 from dotmap import DotMap
-from run import train
+from run_gae import train
 import argparse
 
 

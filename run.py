@@ -23,7 +23,7 @@ def set_seed(seed, logger):
         logger.update_info(f"Seed = {seed}")
 
 def choose_environment(env_name, logger):
-    env = gym.make(env_name, height=100, width=100, block = [[0,70,45,55]])
+    env = gym.make(env_name, height=100, width=100)
     logger.update_info(f"Environment = {env_name}\n")
     print('Environment', env_name)
     print()
@@ -43,7 +43,7 @@ def choose_environment(env_name, logger):
         info  = {
             'obs_dim': env.observation_space.shape[0],
             'act_dim': env.action_space.n,
-            'max_episode_length': 100,
+            'max_episode_length': 500,
             'timesteps_per_batch': 2500,
             'timesteps_per_update': 2500,
             'total_timesteps': 150000,
@@ -54,10 +54,10 @@ def choose_environment(env_name, logger):
         info  = {
             'obs_dim': env.observation_space.shape[0],
             'act_dim': env.action_space.shape[0],
-            'max_episode_length': 500,
+            'max_episode_length': 200,
             'timesteps_per_batch': 1000,
             'timesteps_per_update': 1000,
-            'total_timesteps': 100000,
+            'total_timesteps': 50000,
             'gamma': 0.9,
             'lr': 1e-3
         }

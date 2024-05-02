@@ -1,4 +1,4 @@
-from agent.networks import MLP
+from agent.networks import MLP, LargeMLP
 from agent.optimizers import Adam, SGD
 
 import torch
@@ -83,14 +83,19 @@ class ContinuousActorCritic(object):
         self.obs_dim = self.config.obs_dim
         self.act_dim = self.config.act_dim
 
-        self.actor = MLP(self.obs_dim, self.act_dim, self.config.hidden_dim)
-        self.critic = MLP(self.obs_dim, 1, self.config.hidden_dim)
+        self.actor = LargeMLP(self.obs_dim, self.act_dim, self.config.hidden_dim)
+        self.critic = LargeMLP(self.obs_dim, 1, self.config.hidden_dim)
 
         self.actor_optim = Adam(self.actor.parameters(), lr = self.config.lr)
         self.critic_optim = Adam(self.critic.parameters(), lr = self.config.lr)
 
         self.cov_var = torch.full(size=(self.act_dim,), fill_value=0.5)
         self.cov_mat = torch.diag(self.cov_var)
+
+    def reset_critic(self):
+        self.critic = LargeMLP(self.obs_dim, 1, self.config.hidden_dim)
+        self.critic_optim = Adam(self.critic.parameters(), lr = self.config.lr)
+        self.adam_optim = Adam(self.actor.parameters(), lr = self.config.lr)
 
     def __repr__(self):
         return f"Continuous Actor Critic Model: \n\

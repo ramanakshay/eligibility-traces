@@ -156,12 +156,13 @@ class GAE(BatchPolicyGradient):
         advantages = batch_lam
         # print(advantages.min(), advantages.max())
         normalized_adv = (advantages - advantages.mean()) / (advantages.std() + 1e-10)
+        # normalized_adv = advantages
         # print(normalized_adv.min(), normalized_adv.max())
         # normalized_adv = advantages / advantages.max()
 
         _, dist = self.model.get_action(batch_obs)
         log_probs = dist.log_prob(batch_acts)
-        actor_loss = (-normalized_adv * log_probs).mean() + (-dist.entropy().mean())
+        actor_loss = (-normalized_adv * log_probs).mean()
         critic_loss = (-normalized_adv * values).mean()
 
         actor_loss.backward(retain_graph=True)

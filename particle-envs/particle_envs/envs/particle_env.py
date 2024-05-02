@@ -7,7 +7,7 @@ class ParticleEnv(gymnasium.Env):
 	metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 4}
 	
 	def __init__(self, render_mode='rgb_array', height=84, width=84, step_size=5, reward_type='dense', 
-		  		 reward_scale=None, block=None):
+		  		 reward_scale=None, block=None, start=None, goal=None):
 		super(ParticleEnv, self).__init__()
 
 		self.height = height
@@ -34,13 +34,15 @@ class ParticleEnv(gymnasium.Env):
 									   dtype = np.float32)
 		
 		# Set initial start
-		self.state = np.array([np.random.randint(0, self.height), np.random.randint(0, self.width)]).astype(np.int32)
+		self.start_box = start if start != None else [0,int(0.2*self.height),
+													  0, int(0.2*self.width)]
 
 		# Set initial goal
-		self.goal = np.array([height-5, width-5]).astype(np.int32)
-
-		# Tracking expert help provided.
-		self.expert_calls = 0
+		self.goal_box = goal if goal != None else [self.height - 10, self.height,
+												   self.width - 10, self.width]
+		# self.goal = np.array([np.random.randint(self.goal_box[0], self.goal_box[1]),
+		# np.random.randint(self.goal_box[2], self.goal_box[3])]).astype(np.int32)
+		self.goal = np.array([int(0.5*(self.goal_box[0] + self.goal_box[1])), int(0.5*(self.goal_box[2] + self.goal_box[3]))]).astype(np.int32)
 	
 	def step(self, action):
 		prev_state = self.state
@@ -50,13 +52,19 @@ class ParticleEnv(gymnasium.Env):
 		self.state[0] = np.clip(self.state[0], 0, self.height-1)
 		self.state[1] = np.clip(self.state[1], 0, self.width-1)
 		
-		if self.observation[int(self.state[0]), int(self.state[1])]==1:
+		if self.observation[int(self.state[0]), int(self.state[1])]==1 or \
+		   self.state[0] in [0,self.height-1] or self.state[1] in [0,self.width-1]:
 			reward = -1
 			self.state = prev_state
 			# print('blocked')
 			done = False
+		elif (self.start_box[0] < self.state[0] < self.start_box[1]) and \
+			 (self.start_box[2] < self.state[1] < self.start_box[3]):
+			# print('BAD')
+			reward = -10
+			done = False
 		elif self.observation[int(self.state[0]), int(self.state[1])] == 2:
-			reward = 1
+			reward = 100
 			done = True
 		else:
 			reward = -np.linalg.norm(self.state - self.goal) / self.reward_scale if self.reward_type == 'dense' else 0
@@ -73,27 +81,28 @@ class ParticleEnv(gymnasium.Env):
 		return state, reward, done, done,  info
 	
 	def reset(self, start_state=None, reset_goal=False, goal_state=None, seed=None, options=None):
+		# reset_goal = True
 		super().reset(seed=seed)
 		start_state = np.array(start_state).astype(np.float32) if start_state is not None else None
 
 		# set start state
 		if start_state is None:
-			self.state = np.array([np.random.randint(0, self.height), np.random.randint(0, self.width)]).astype(np.int32)
-			while self.state[0] > self.height*0.4 or self.state[1] > self.width*0.4:
-				self.state = np.array([np.random.randint(0, self.height), np.random.randint(0, self.width)]).astype(np.int32)
+			self.state = np.array([np.random.randint(self.start_box[0], self.start_box[1]),
+								   np.random.randint(self.start_box[2], self.start_box[3])]).astype(np.int32)
 		else:
-			start_state[0], start_state[1] = start_state[0] * self.height, start_state[1] * self.width
+			# start_state[0], start_state[1] = start_state[0] * self.height, start_state[1] * self.width
 			self.state = np.array(start_state).astype(np.int32)
 
 		# set goal state
 		if reset_goal:
 			if goal_state is not None:
-				goal_state[0], goal_state[1] = goal_state[0] * self.height, goal_state[1] * self.width
+				# goal_state[0], goal_state[1] = goal_state[0] * self.height, goal_state[1] * self.width
 				self.goal = np.array(goal_state).astype(np.int32)
 			else:
-				goal = np.array([np.random.randint(0, self.height), np.random.randint(0, self.width)]).astype(np.int32)
-				while np.linalg.norm(self.state - goal) < self.diagonal / 4:
-					goal = np.array([np.random.randint(0, self.height), np.random.randint(0, self.width)]).astype(np.int32)
+				goal = np.array([np.random.randint(self.goal_box[0], self.goal_box[1]),
+				np.random.randint(self.goal_box[2], self.goal_box[3])]).astype(np.int32)
+				# while np.linalg.norm(self.state - goal) < self.diagonal / 4:
+				# 	goal = np.array([np.random.randint(0, self.height), np.random.randint(0, self.width)]).astype(np.int32)
 				self.goal = goal
 
 		# observation image
@@ -131,13 +140,14 @@ class ParticleEnv(gymnasium.Env):
 		return state, info
 
 
-	def render(self, width=None, height=None):
-		img = np.ones(self.observation.shape).astype(np.uint8) * 255
+	def render(self):
+		# img = np.ones(self.observation.shape).astype(np.uint8) * 255
 		# Identify blocked region
 		# blocked = np.where(self.observation == 1)
 		# img[blocked] = 0
-		hmin, hmax, wmin, wmax = 0,70,45,55
-		img[hmin:hmax, wmin:wmax]  = 0
+		# hmin, hmax, wmin, wmax = 0,70,40,65
+		# img[hmin:hmax, wmin:wmax]  = 0
+		img = np.where(self.observation==1, 0, 255).astype(np.uint8)
 		
 		# hmin, hmax, wmin, wmax = 30,99,50,75
 		# img[hmin:hmax, wmin:wmax]  = 0
@@ -150,16 +160,17 @@ class ParticleEnv(gymnasium.Env):
 		# Mark state
 		img[max(0, int(self.state[0])-5):min(self.height-1, int(self.state[0])+5), max(0, int(self.state[1])-5):min(self.width-1, int(self.state[1])+5)] = 128
 
+		width, height = 300, 300
 		if width is not None and height is not None:
 			dim = (int(width), int(height))
 			img = cv2.resize(img, dim, interpolation = cv2.INTER_AREA)
 		img = img[..., None]
 
 		if self.render_mode=='rgb_array':
-			return img
+			return cv2.cvtColor(img ,cv2.COLOR_GRAY2RGB)
 		else:
 			cv2.imshow("Render", img)
-			cv2.waitKey(50)
+			cv2.waitKey(15)
 
 # Code to test the environment
 if __name__ == '__main__':
