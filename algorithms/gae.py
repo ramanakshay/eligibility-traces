@@ -17,7 +17,6 @@ class GAE(ContinualPolicyGradient):
       next_value = self.model.get_value(next_obs, False)
       residual = reward + gamma * next_value - value.clone().detach()
       
-      
       # calculate log prob
       _, dist = self.model.get_action(obs)
       log_prob = dist.log_prob(act)

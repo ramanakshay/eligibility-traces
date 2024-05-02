@@ -21,8 +21,8 @@ class ContinuousActorCritic(object):
         self.lam = self.config.lam
         
         # NOTE: ETSGD Maximizes
-        self.actor_optim = ETSGD(self.actor.parameters(), lr = self.lr, gam=self.gam, lam = self.lam)
-        self.critic_optim = ETSGD(self.critic.parameters(), lr = self.lr, gam=self.gam, lam = self.lam)
+        self.actor_optim = RETAdam(self.actor.parameters(), lr = self.lr, gam=self.gam, lam = self.lam)
+        self.critic_optim = RETAdam(self.critic.parameters(), lr = self.lr, gam=self.gam, lam = self.lam)
 
         self.cov_var = torch.full(size=(self.act_dim,), fill_value=0.5)
         self.cov_mat = torch.diag(self.cov_var)

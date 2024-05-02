@@ -1,6 +1,7 @@
 from agent.models import DiscreteActorCritic, DiscreteActor
-from algorithms.vpg import BaselineRTG, RTG, TDResidual, GAE
+from algorithms.vpg import BaselineRTG, RTG, TDR, GAE
 import gymnasium as gym
+import particle_envs
 from logger import Logger
 from dotmap import DotMap
 import torch
@@ -18,20 +19,19 @@ if seed != None:
 
 
 # environment
-env = gym.make('Acrobot-v1')
+env = gym.make('particle-v0')
 env_name = env.unwrapped.spec.id
 logger.update_info(f"Environment = {env_name}\n")
 print(env_name)
-print()
 
 # model
 model_config = DotMap({
     'obs_dim': env.observation_space.shape[0],
-    'act_dim': env.action_space.n,
+    'act_dim': env.action_space.shape[0],
     'hidden_dim': 64,
-    'lr': 2e-2
+    'lr': 1e-3
 })
-model = DiscreteActorCritic(model_config)
+model = DiscreteActor(model_config)
 logger.update_info(str(model))
 logger.update_info(str(model_config)+"\n")
 print(model)
@@ -39,12 +39,12 @@ print(model_config)
 
 # algorithm
 alg_config = DotMap({
-    'max_episode_length': 1000,
+    'max_episode_length': 100,
     'timesteps_per_batch': 2048,
     'gamma': 0.99,
     'lam': 0.9
 })
-alg = GAE(env, model, alg_config, logger)
+alg = RTG(env, model, alg_config, logger)
 total_timesteps = 1000000
 alg.learn(total_timesteps)
 logger.update_info("Algorithm: ")

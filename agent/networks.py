@@ -11,7 +11,9 @@ class MLP(nn.Module):
                                         nn.ReLU(inplace=True),
                                         nn.Linear(hidden_dim, hidden_dim),
                                         nn.ReLU(inplace=True),
-                                        nn.Linear(hidden_dim, out_dim))
+                                        nn.Linear(hidden_dim, out_dim),
+                                        nn.Tanh())
+
 
     def forward(self, obs):
         # NOTE: outputs in batches only

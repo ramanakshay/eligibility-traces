@@ -1,6 +1,7 @@
 import torch
 import numpy as np
 from dotmap import DotMap
+import gymnasium as gym
 
 
 class BatchPolicyGradient(object):

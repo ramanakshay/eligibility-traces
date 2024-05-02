@@ -80,7 +80,7 @@ class BaselineRTG(BatchPolicyGradient):
         return actor_loss, critic_loss
 
 
-class TDResidual(BatchPolicyGradient):
+class TDR(BatchPolicyGradient):
     def __init__(self, env, model, config, logger):
         BatchPolicyGradient.__init__(self, env, model, config, logger)
 
@@ -157,10 +157,11 @@ class GAE(BatchPolicyGradient):
         # print(advantages.min(), advantages.max())
         normalized_adv = (advantages - advantages.mean()) / (advantages.std() + 1e-10)
         # print(normalized_adv.min(), normalized_adv.max())
+        # normalized_adv = advantages / advantages.max()
 
         _, dist = self.model.get_action(batch_obs)
         log_probs = dist.log_prob(batch_acts)
-        actor_loss = (-normalized_adv * log_probs).mean()
+        actor_loss = (-normalized_adv * log_probs).mean() + (-dist.entropy().mean())
         critic_loss = (-normalized_adv * values).mean()
 
         actor_loss.backward(retain_graph=True)
