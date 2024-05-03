@@ -54,8 +54,8 @@ def choose_environment(env_name, logger):
             'max_episode_length': 200,
             'timesteps_per_update': 1000,
             'total_timesteps': 50000,
-            'gamma': 0.9,
-            'lr': 1e-3
+            'gamma': 0.999,
+            'lr': 5e-4
         }
     else:
         raise InvalidArgumentError('Unknown environment.')
@@ -67,10 +67,10 @@ def choose_model(model_name, info, logger):
         'obs_dim': info['obs_dim'],
         'act_dim': info['act_dim'],
         'lr': info['lr'],
-        'hidden_dim': 64,
+        'hidden_dim': 128,
         'gam': info['gamma'],
-        'lam': 0.9,
-        'clip': 0.2,
+        'lam': 1.0,
+        'clip': 1.0,
         'replacing': False
     })
     if model_name == 'discrete-actor-critic':

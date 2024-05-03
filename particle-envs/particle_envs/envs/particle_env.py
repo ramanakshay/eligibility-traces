@@ -58,13 +58,13 @@ class ParticleEnv(gymnasium.Env):
 			self.state = prev_state
 			# print('blocked')
 			done = False
-		elif (self.start_box[0] < self.state[0] < self.start_box[1]) and \
-			 (self.start_box[2] < self.state[1] < self.start_box[3]):
-			# print('BAD')
-			reward = -10
-			done = False
+		# elif (self.start_box[0] < self.state[0] < self.start_box[1]) and \
+		# 	 (self.start_box[2] < self.state[1] < self.start_box[3]):
+		# 	# print('BAD')
+		# 	reward =
+		# 	done = False
 		elif self.observation[int(self.state[0]), int(self.state[1])] == 2:
-			reward = 100
+			reward = +100
 			done = True
 		else:
 			reward = -np.linalg.norm(self.state - self.goal) / self.reward_scale if self.reward_type == 'dense' else 0

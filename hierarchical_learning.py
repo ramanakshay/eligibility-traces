@@ -26,9 +26,8 @@ env_config = DotMap({
     'width': 90,
     'step_size': 7,
     'block': [[0, 65, 15, 30], [25, 89, 55, 70]],
-    'start': [0,10,0,10],
-    'goal': [79,89,31,54],
     'reward_type': None,
+    'render_mode': 'human'
 })
         
 env = gym.make('particle-v0', **env_config.toDict())
