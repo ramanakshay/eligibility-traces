@@ -1,18 +1,16 @@
 import gymnasium as gym
-import particle_envs
 
 from agent.gae_models import DiscreteActorCritic, ContinuousActorCritic
 from algorithms.gae import GAE
 
 from evaluate import Evaluator
-
 from dotmap import DotMap
-from logger import Logger
+from utils.logger import Logger
 import torch
 
 import argparse
 
-# BATCH POLICY GRADIENT TESTING
+# CONTINUAL POLICY GRADIENTS
 
 def set_seed(seed, logger):
     if seed != None:

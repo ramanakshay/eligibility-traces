@@ -1,9 +1,5 @@
 import torch
 from torch.optim import Optimizer
-
-import torch
-from torch.optim import Optimizer
-
 import numpy as np
 
 

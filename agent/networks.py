@@ -11,8 +11,7 @@ class MLP(nn.Module):
                                         nn.ReLU(inplace=True),
                                         nn.Linear(hidden_dim, hidden_dim),
                                         nn.ReLU(inplace=True),
-                                        nn.Linear(hidden_dim, out_dim),
-                                        nn.Tanh())
+                                        nn.Linear(hidden_dim, out_dim))
 
 
     def forward(self, obs):
@@ -23,6 +22,7 @@ class MLP(nn.Module):
 
         output = self.network(obs)
         return output
+
 
 class LargeMLP(nn.Module):
     def __init__(self, in_dim, out_dim, hidden_dim):
@@ -35,8 +35,7 @@ class LargeMLP(nn.Module):
                                         nn.ReLU(inplace=True),
                                         nn.Linear(2*hidden_dim, hidden_dim),
                                         nn.ReLU(inplace=True),
-                                        nn.Linear(hidden_dim, out_dim),
-                                        nn.Tanh())
+                                        nn.Linear(hidden_dim, out_dim))
 
     def forward(self, obs):
         # NOTE: outputs in batches only

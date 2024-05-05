@@ -1,4 +1,4 @@
-from agent.networks import MLP
+from agent.networks import MLP, LargeMLP
 from agent.optimizers import ETSGD, ETAdam
 
 import torch

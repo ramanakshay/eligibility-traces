@@ -1,2 +1,2 @@
-# continual-policy-gradient
+# Continual-Policy-Gradient
 Continual Policy Gradient Methods
