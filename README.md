@@ -24,10 +24,10 @@ Eligibility traces can be implemented in Pytorch by designing a custom optimizer
 
 The first figure compares the performance of batch and continual GAE. We can see that both approaches converge to the same solution. The second figure tests the algorithm on the same environment with different values of lambda.
 
-<p align = "center">
-<img align="center" src="images/traces.png" alt="Hash Tree"/>
+<p>
+<img  src="images/traces.png" alt="Hash Tree" width="350"/>
 
-<img align="center" src="images/lambda.png" alt="Hash Tree"/>
+<img src="images/lambda.png" alt="Hash Tree" width="350"/>
 </p>
 
 ## Note
