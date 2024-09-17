@@ -2,7 +2,7 @@
 
 ## About
 
-Policy gradient methods are a family of algorithms in reinforcement learning that optimize and model the policy directly. In this project, I implement incremental learning versions of policy gradient methods which allows an agent to simultaneously learn while interacting with the environment. This project (to the best of the author’s knowledge) is the first implementation of eligibility traces applied to deep neural networks in PyTorch.
+Policy gradient methods are a family of algorithms in reinforcement learning that optimize and model the policy directly. In this project, I implement incremental learning versions of policy gradient methods which allows an agent to simultaneously learn while interacting with the environment. This is achieved by using eligibility traces with deep neural networks in PyTorch.
 
 ## Batch vs. Continual Policy Gradient
 
