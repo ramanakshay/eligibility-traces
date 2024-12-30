@@ -6,8 +6,6 @@ Policy gradient methods are a family of algorithms in reinforcement learning tha
 
 ## Run
 
-```
-
 1. Install dependencies from requirements file. Make sure to create a virtual environment before running this command.
 ```
 pip install -r requirements.txt
