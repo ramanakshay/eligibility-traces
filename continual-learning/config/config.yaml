@@ -18,7 +18,7 @@ agent:
         replacing: True
         clip: 1.0
     from_pretrained: False
-    weights_path: /Users/akshay/continual-learning/continual-learning/agent/weights/
+    weights_path: /Users/akshay/continual-policy-gradient/continual-learning/agent/weights
 
 algorithm:
     total_episodes: 1000
