@@ -9,7 +9,7 @@ Policy gradient methods are a family of algorithms in reinforcement learning tha
 Batch policy gradient methods essentially use stochastic gradient descent to estimate the gradient. Therefore, larger batch sizes and larger batch rollouts would give better and more accurate results. This however is not scalable since large rollouts imply huge data buffers to store encountered states, actions, and rewards.
 
 <p align = "center">
-<img align="center" src="images/agent_env.jpg" alt="Hash Tree" width = "750" />
+<img align="center" src="assets/images/agent_env.jpg" alt="Hash Tree" width = "750" />
 </p>
 
 Continual policy gradient method do not update the agent using stored batches. Instead, the algorithm must update the agent only using information available at the current (and last) timestep.
@@ -25,9 +25,9 @@ Eligibility traces can be implemented in Pytorch by designing a custom optimizer
 The first figure compares the performance of batch and continual GAE. We can see that both approaches converge to the same solution. The second figure tests the algorithm on the same environment with different values of lambda.
 
 <p>
-<img  src="images/traces.png" alt="Hash Tree" width="350"/>
+<img  src="assets/images/traces.png" alt="Hash Tree" width="350"/>
 
-<img src="images/lambda.png" alt="Hash Tree" width="350"/>
+<img src="assets/images/lambda.png" alt="Hash Tree" width="350"/>
 </p>
 
 ## Note

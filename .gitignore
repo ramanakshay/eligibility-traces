@@ -159,9 +159,11 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 
+# DS Store
 .DS_Store
-history/
 
+# Outputs directory
+continual-learning/outputs/
 
-# environments
-particle-envs/
+# Weights Folder
+continual-learning/agent/weights/
