@@ -4,6 +4,22 @@
 
 Policy gradient methods are a family of algorithms in reinforcement learning that optimize and model the policy directly. In this project, I implement incremental learning versions of policy gradient methods which allows an agent to simultaneously learn while interacting with the environment. This is achieved by using eligibility traces with deep neural networks in PyTorch.
 
+## Run
+
+```
+
+1. Install dependencies from requirements file. Make sure to create a virtual environment before running this command.
+```
+pip install -r requirements.txt
+```
+
+2. cd into source folder and then run the code.
+```
+cd continual-learning
+python main.py
+```
+
+
 ## Batch vs. Continual Policy Gradient
 
 Batch policy gradient methods essentially use stochastic gradient descent to estimate the gradient. Therefore, larger batch sizes and larger batch rollouts would give better and more accurate results. This however is not scalable since large rollouts imply huge data buffers to store encountered states, actions, and rewards.
@@ -32,6 +48,6 @@ The first figure compares the performance of batch and continual GAE. We can see
 
 ## Note
 
-A more detailed explanation (with math) can be found in the report above. 
+A more detailed explanation (with math) can be found in report.pdf
 
 
