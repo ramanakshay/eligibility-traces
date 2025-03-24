@@ -1,4 +1,4 @@
-# Continual-Policy-Gradient
+# Implementing Eligibility Traces for Deep Networks
 
 ## About
 
