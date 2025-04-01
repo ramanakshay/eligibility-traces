@@ -1,4 +1,4 @@
-# Implementing Eligibility Traces for Deep Networks
+# Eligibility Traces for Deep Neural Networks
 
 ## About
 
